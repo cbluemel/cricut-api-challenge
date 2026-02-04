@@ -1,5 +1,6 @@
 ﻿using AutoBogus;
 using Cricut.Orders.Api.ViewModels;
+using Cricut.Orders.Domain.Models;
 using FluentAssertions;
 using System.Net.Http.Json;
 
@@ -11,7 +12,9 @@ namespace Cricut.Orders.Integration.Tests
         [DataTestMethod]
         [DataRow(3, 2, 1.5, false)]
         [DataRow(3, 2, 1.5, false)]
-        [DataRow(1, 1, 25, false)]
+        [DataRow(1, 1, 24.99, false)]
+        [DataRow(1, 1, 25, true)]
+        [DataRow(1, 1, 25.01, true)]
         [DataRow(3, 4, 8, true)]
         [DataRow(1, 1, 30, true)]
         public async Task CreateNewOrder_Does_Apply_Discount(int lineItems, int quantityOfEach, double priceOfEach, bool shouldApplyDiscount)
@@ -38,6 +41,22 @@ namespace Cricut.Orders.Integration.Tests
             {
                 order!.Total.Should().Be(expectedTotal);
             }
+        }
+
+        [TestMethod]
+        public async Task GetCustomerOrdersAsync_ReturnsOrdersForCustomer()
+        {
+            var client = OrdersApiTestClientFactory.CreateTestClient();
+            var customerId = 12345;
+
+            var response = await client.GetAsync($"v1/orders/customer/{customerId}");
+            response.IsSuccessStatusCode.Should().BeTrue();
+
+            var orders = await response.Content.ReadFromJsonAsync<Order[]>();
+
+            orders.Should().NotBeNull();
+            orders!.Length.Should().Be(5);
+            orders.All(o => o.Customer != null && o.Customer.Id == customerId).Should().BeTrue();
         }
 
         private NewOrderViewModel CreateOrderWithItems(int numberOfLineItems, int quantityOfEachItem, double priceOfEachItem)

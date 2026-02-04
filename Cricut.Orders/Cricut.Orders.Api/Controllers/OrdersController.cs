@@ -1,6 +1,7 @@
 ﻿using Cricut.Orders.Api.Mappings;
 using Cricut.Orders.Api.ViewModels;
 using Cricut.Orders.Domain;
+using Cricut.Orders.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cricut.Orders.Api.Controllers
@@ -14,6 +15,14 @@ namespace Cricut.Orders.Api.Controllers
         public OrdersController(IOrderDomain orderDomain)
         {
             _orderDomain = orderDomain;
+        }
+
+        [HttpGet]
+        [Route("customer/{customerId}")]
+        public async Task<ActionResult<Order[]>> GetCustomerOrdersAsync([FromRoute] int customerId)
+        {
+            var customerOrders = await _orderDomain.GetAllOrdersForCustomerAsync(customerId);
+            return Ok(customerOrders);
         }
 
         [HttpPost]

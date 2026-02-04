@@ -13,7 +13,7 @@
             get
             {
                 var orderItemTotal = OrderItems.Sum(x => x.Total);
-                if (orderItemTotal > DiscountThreshold)
+                if (orderItemTotal >= DiscountThreshold)
                 {
                     orderItemTotal = Apply10PercentDiscount(orderItemTotal);
                 }
